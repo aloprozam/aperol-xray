@@ -1,0 +1,20 @@
+version: 0.2
+
+env:
+  shell: bash
+phases:
+  install:
+    runtime-versions:
+      java: latest
+  build:
+    commands:
+      - aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin 650542493750.dkr.ecr.eu-central-1.amazonaws.com
+      - envsubst < Dockerfile | docker build -t aperol-xray . -f -
+      - docker tag aperol-xray:latest 650542493750.dkr.ecr.eu-central-1.amazonaws.com/aperol-xray:latest
+      - docker push 650542493750.dkr.ecr.eu-central-1.amazonaws.com/aperol-xray:latest
+  post_build:
+    commands:
+      - printf '[{\"name\":\"gpc-zipkin-sandbox\",\"imageUri\":\"855718874679.dkr.ecr.us-west-2.amazonaws.com/gpc-zipkin-sandbox:latest\"}]' > imagedefinitions.json
+artifacts:
+  files:
+    - imagedefinitions.json
